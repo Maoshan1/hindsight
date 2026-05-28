@@ -11,19 +11,19 @@ class Hindsight < Formula
     system "cargo", "install", *std_cargo_args
 
     # Install shell integration files
-    zsh.install "hindsight.zsh"
-    bash.install "hindsight.bash"
+    pkgshare.install "hindsight.zsh"
+    pkgshare.install "hindsight.bash"
   end
 
   def caveats
     <<~EOS
       To enable shell history recording, add to your ~/.zshrc:
 
-        source #{zsh}/hindsight.zsh
+        source #{opt_pkgshare}/hindsight.zsh
 
       Or for bash, add to ~/.bashrc:
 
-        source #{bash}/hindsight.bash
+        source #{opt_pkgshare}/hindsight.bash
     EOS
   end
 
