@@ -44,7 +44,7 @@ pub fn search(conn: &Connection, query: &str, cwd: Option<&str>, exit_code: Opti
         let timestamp: i64 = row.get(3)?;
 
         let dt = chrono::DateTime::from_timestamp(timestamp, 0)
-            .map(|d| d.format("%Y-%m-%d %H:%M").to_string())
+            .map(|d| d.with_timezone(&chrono::Local).format("%Y-%m-%d %H:%M").to_string())
             .unwrap_or_default();
 
         let exit_str = match exit_code {
@@ -76,7 +76,7 @@ pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<String>> {
         let timestamp: i64 = row.get(3)?;
 
         let dt = chrono::DateTime::from_timestamp(timestamp, 0)
-            .map(|d| d.format("%Y-%m-%d %H:%M").to_string())
+            .map(|d| d.with_timezone(&chrono::Local).format("%Y-%m-%d %H:%M").to_string())
             .unwrap_or_default();
 
         let exit_str = match exit_code {
