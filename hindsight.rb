@@ -1,8 +1,8 @@
 class Hindsight < Formula
   desc "20/20 vision for your shell history"
   homepage "https://github.com/Maoshan1/hindsight"
-  url "https://github.com/Maoshan1/hindsight/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "8f481e8e3db9431fc06a8dd223de665a31a9289946d2db522e07d43aef431d70"
+  url "https://github.com/Maoshan1/hindsight/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "3d6e27306fb0d9a1e2cf217d4e85c874fb61c5da49a6d950c0e16f13c143e85c"
   license "MIT"
 
   depends_on "rust" => :build
@@ -10,7 +10,6 @@ class Hindsight < Formula
   def install
     system "cargo", "install", *std_cargo_args
 
-    # Install shell integration files
     pkgshare.install "hindsight.zsh"
     pkgshare.install "hindsight.bash"
   end
