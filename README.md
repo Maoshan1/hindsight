@@ -1,71 +1,188 @@
-# hindsight
+<p align="center">
+  <img src="src-tauri/icons/icon-512.png" width="120" alt="Hindsight Logo">
+</p>
 
-> 20/20 vision for your shell history.
+<h1 align="center">Hindsight</h1>
 
-`hindsight` is a shell history search tool that **doesn't replace your history system**. It runs alongside your existing `~/.zsh_history` — just makes it searchable.
+<p align="center">
+  <strong>20/20 vision for your shell history</strong><br>
+  <em>Never lose a command again.</em>
+</p>
+
+<p align="center">
+  <a href="#-features">Features</a> •
+  <a href="#-install">Install</a> •
+  <a href="#-usage">Usage</a> •
+  <a href="#-comparison">Comparison</a> •
+  <a href="#-contributing">Contributing</a> •
+  <a href="#-license">License</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-0.1.1-blue" alt="Version">
+  <img src="https://img.shields.io/badge/platform-macOS-lightgrey" alt="Platform">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/Rust-2021-orange" alt="Rust">
+</p>
+
+---
+
+## The Problem
+
+You wrote a complex `ffmpeg` command three weeks ago. You need it again. But you can't remember the exact flags.
+
+`Ctrl+R` only searches by prefix. You don't remember how the command started — you remember it had something to do with `ffmpeg` and `scale`.
+
+**Hindsight fixes this.** It records every command with context (working directory, exit code, duration) and lets you search with full-text matching.
+
+## Features
+
+- **Full-text search** — Find any command by typing any word in it
+- **Context-aware** — See where each command was run (working directory)
+- **Failed command filter** — Quickly find what went wrong
+- **Privacy-first** — 100% local, no cloud, no account needed
+- **Non-invasive** — Works alongside your existing history, doesn't replace it
+- **GUI App** — Beautiful macOS menu bar app with fuzzy search
+- **CLI Tool** — Fast terminal interface for power users
 
 ## Install
 
-```bash
-# Build from source
-git clone https://github.com/yourname/hindsight.git
-cd hindsight
-cargo install --path .
+### macOS App (Recommended)
 
-# Or via cargo
+```bash
+# Download the DMG from Releases
+# https://github.com/Maoshan1/hindsight/releases
+
+# Or build from source
+git clone https://github.com/Maoshan1/hindsight.git
+cd hindsight
+npm install
+cargo install tauri-cli
+npm run tauri build
+```
+
+### CLI (Homebrew)
+
+```bash
+brew tap Maoshan1/hindsight
+brew install Maoshan1/hindsight/hindsight
+```
+
+### CLI (Cargo)
+
+```bash
 cargo install hindsight
 ```
 
 ## Setup
 
-Add to your `~/.zshrc`:
+Add to your `~/.zshrc` (or `~/.bashrc`):
 
 ```bash
-source /path/to/hindsight.zsh
+# For Homebrew install
+source $(brew --prefix)/share/hindsight/hindsight.zsh
+
+# For cargo install
+source ~/.hindsight/hindsight.zsh
 ```
 
-That's it. Every command you run is now recorded.
+Every command you run is now automatically recorded.
 
 ## Usage
+
+### GUI App
+
+Click the tray icon in the menu bar to open the search window. Type to search instantly.
+
+| Action | Shortcut |
+|--------|----------|
+| Open search | Click tray icon |
+| Navigate results | `↑` / `↓` |
+| Copy command | `Enter` on selected item |
+| Close window | Click red button (app stays in tray) |
+| Quit app | Right-click tray → Quit |
+
+### CLI
 
 ```bash
 # Search history
 hindsight ffmpeg
 hindsight "docker compose"
 
-# Filter by directory
-hindsight --cwd ~/projects npm
-
-# Filter by exit code (failed commands only)
+# Search failed commands
 hindsight --exit 1
 
-# Top 20 most used commands
+# Most used commands
 hindsight top
 
-# Stats
-hindsight stats
-
-# Recent commands
+# All recent commands
 hindsight
 ```
 
-## How it works
+## How It Works
 
-1. Shell hooks (`preexec`/`precmd`) record every command with metadata (cwd, exit code, duration)
-2. Data is stored in a local SQLite database at `~/.hindsight/history.db`
-3. Full-text search powered by SQLite FTS5
+```
+┌─────────────────────────────────────────────────┐
+│  Your Shell (zsh/bash)                          │
+│  preexec/precmd hooks → record command + metadata│
+└──────────────────────┬──────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────┐
+│  SQLite Database (~/.hindsight/history.db)       │
+│  - Full command text                             │
+│  - Working directory                             │
+│  - Exit code & duration                          │
+│  - FTS5 full-text search index                   │
+└──────────────────────┬──────────────────────────┘
+                       │
+              ┌────────┴────────┐
+              ▼                 ▼
+        ┌──────────┐    ┌──────────┐
+        │  GUI App │    │   CLI    │
+        │ (Tauri)  │    │ (Rust)   │
+        └──────────┘    └──────────┘
+```
 
-## vs atuin vs mcfly
+## Comparison
 
-| Feature | hindsight | atuin | mcfly |
-|---------|-----------|-------|-------|
-| Replaces history | No | Yes | Yes |
-| Full-text search | Yes | Yes | No (fuzzy) |
-| Filter by cwd | Yes | Yes | No |
-| Filter by exit code | Yes | Yes | No |
-| Cloud sync | No (planned) | Yes | No |
-| Privacy | Local only | Cloud | Local only |
+| Feature | **Hindsight** | atuin | mcfly |
+|---------|:------------:|:-----:|:-----:|
+| Non-invasive (keeps existing history) | ✅ | ❌ | ❌ |
+| Full-text search | ✅ | ✅ | ❌ |
+| Filter by directory | ✅ | ✅ | ❌ |
+| Filter by exit code | ✅ | ✅ | ❌ |
+| macOS GUI app | ✅ | ❌ | ❌ |
+| Privacy (no cloud required) | ✅ | ❌ | ✅ |
+| Works without daemon | ✅ | ❌ | ❌ |
+| Cloud sync | 🔜 | ✅ | ❌ |
+| Team shared history | 🔜 | ✅ | ❌ |
+
+**Key difference:** Hindsight doesn't replace your shell history system. It sits alongside it — zero risk, zero migration, zero config changes.
+
+## Roadmap
+
+- [x] CLI with full-text search
+- [x] macOS GUI app
+- [x] Shell hooks (zsh, bash)
+- [ ] Cloud sync (optional)
+- [ ] Team shared history
+- [ ] AI semantic search
+- [ ] Linux support
+- [ ] Windows support
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request.
+
+```bash
+# Development
+git clone https://github.com/Maoshan1/hindsight.git
+cd hindsight
+npm install
+npm run tauri dev
+```
 
 ## License
 
-MIT
+[MIT](LICENSE)
