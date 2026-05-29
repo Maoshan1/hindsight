@@ -25,6 +25,10 @@
   <img src="https://img.shields.io/badge/Rust-2021-orange" alt="Rust">
 </p>
 
+<p align="center">
+  <a href="README.zh-CN.md">🇨🇳 简体中文</a>
+</p>
+
 ---
 
 ## The Problem
