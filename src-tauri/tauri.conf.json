@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
+  "productName": "Hindsight",
+  "version": "0.1.1",
+  "identifier": "com.hindsight.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npx vite build",
+    "beforeDevCommand": "npx vite --port 1420"
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "icon": [
+      "icons/icon.png",
+      "icons/icon-512.png"
+    ]
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "search",
+        "title": "Hindsight",
+        "width": 600,
+        "height": 400,
+        "resizable": false,
+        "decorations": true,
+        "transparent": false,
+        "visible": true,
+        "alwaysOnTop": false
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true
+    },
+    "macOSPrivateApi": true
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}
