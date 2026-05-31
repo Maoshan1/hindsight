@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 const queryInput = document.getElementById('query');
 const resultsDiv = document.getElementById('results');
@@ -92,8 +93,7 @@ resultsDiv.addEventListener('click', (e) => {
   }
 });
 
-// Refresh data when window gets focus
-import { getCurrentWindow } from '@tauri-apps/api/window';
+// Refresh data when window is shown
 const win = getCurrentWindow();
 win.listen('tauri://focus', () => {
   search(queryInput.value);
