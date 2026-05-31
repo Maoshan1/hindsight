@@ -92,4 +92,11 @@ resultsDiv.addEventListener('click', (e) => {
   }
 });
 
+// Refresh data when window gets focus
+import { getCurrentWindow } from '@tauri-apps/api/window';
+const win = getCurrentWindow();
+win.listen('tauri://focus', () => {
+  search(queryInput.value);
+});
+
 search('');
