@@ -38,15 +38,17 @@ fn main() {
                 let _ = tray.set_menu(Some(menu));
                 let _ = tray.set_tooltip(Some("Hindsight - Shell History"));
 
-                // Left click → show window + show dock icon
+                // Left click only → show window + show dock icon
                 let app_handle = app.handle().clone();
                 tray.on_tray_icon_event(move |_tray, event| {
-                    if let tauri::tray::TrayIconEvent::Click { .. } = event {
-                        #[cfg(target_os = "macos")]
-                        app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
-                        if let Some(window) = app_handle.get_webview_window("search") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
+                    if let tauri::tray::TrayIconEvent::Click { button, .. } = event {
+                        if button == tauri::tray::MouseButton::Left {
+                            #[cfg(target_os = "macos")]
+                            app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
+                            if let Some(window) = app_handle.get_webview_window("search") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
                         }
                     }
                 });
