@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 
 const queryInput = document.getElementById('query');
 const resultsDiv = document.getElementById('results');
@@ -93,9 +92,8 @@ resultsDiv.addEventListener('click', (e) => {
   }
 });
 
-// Refresh data when window is shown (custom event from Rust)
-const win = getCurrentWindow();
-win.listen('window-shown', () => {
+// Refresh data when search input gets focus (window shown)
+queryInput.addEventListener('focus', () => {
   search(queryInput.value);
 });
 
