@@ -93,9 +93,9 @@ resultsDiv.addEventListener('click', (e) => {
   }
 });
 
-// Refresh data when window is shown
+// Refresh data when window is shown (custom event from Rust)
 const win = getCurrentWindow();
-win.listen('tauri://focus', () => {
+win.listen('window-shown', () => {
   search(queryInput.value);
 });
 

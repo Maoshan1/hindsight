@@ -3,7 +3,7 @@
 mod db;
 
 use tauri::{
-    Manager, RunEvent,
+    Emitter, Manager, RunEvent,
     menu::{MenuBuilder, MenuItemBuilder},
 };
 
@@ -48,6 +48,8 @@ fn main() {
                             if let Some(window) = app_handle.get_webview_window("search") {
                                 let _ = window.show();
                                 let _ = window.set_focus();
+                                // Notify frontend to refresh
+                                let _ = app_handle.emit("window-shown", ());
                             }
                         }
                     }
