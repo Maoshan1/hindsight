@@ -8,11 +8,98 @@
 </head>
 <body>
   <div id="app">
-    <div class="search-bar">
-      <span class="icon">🔍</span>
-      <input type="text" id="query" placeholder="Search history..." autofocus autocomplete="off">
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">H</div>
+      <div class="brand-copy">
+        <span class="eyebrow">LOCAL HISTORY</span>
+        <h1>Hindsight</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button" id="refresh" type="button" title="Refresh history" aria-label="Refresh history">↻</button>
+        <button class="icon-button" id="open-settings" type="button" title="Settings" aria-label="Settings">⚙</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="search-field">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input type="search" id="query" placeholder="Search commands or folders" autofocus autocomplete="off" spellcheck="false" aria-label="Search commands or folders">
+        <button class="clear-button" id="clear-query" type="button" title="Clear search" aria-label="Clear search">×</button>
+      </div>
+
+      <div class="toolbar">
+        <div class="filter-group" role="group" aria-label="History filter">
+          <button class="filter-button active" type="button" data-filter="all">All</button>
+          <button class="filter-button" type="button" data-filter="failed">Failed</button>
+        </div>
+        <span class="result-summary" id="result-summary" aria-live="polite"></span>
+      </div>
+
+      <section id="results" role="listbox" aria-label="Command history" aria-live="polite"></section>
+    </main>
+
+    <div class="copy-toast" id="copy-toast" role="status" aria-live="polite"></div>
+
+    <div class="settings-backdrop" id="settings-backdrop" hidden>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <header class="settings-header">
+          <div>
+            <span class="eyebrow">PREFERENCES</span>
+            <h2 id="settings-title">Settings</h2>
+          </div>
+          <button class="icon-button" id="close-settings" type="button" title="Close settings" aria-label="Close settings">×</button>
+        </header>
+
+        <div class="settings-body">
+          <label class="settings-row" for="recording-toggle">
+            <span class="settings-copy">
+              <strong>Record commands</strong>
+              <small>Pause new history without changing your shell setup.</small>
+            </span>
+            <input class="toggle-input" id="recording-toggle" type="checkbox">
+          </label>
+
+          <label class="settings-field" for="retention-select">
+            <span>
+              <strong>Keep history</strong>
+              <small>Older records are removed when a new command is saved.</small>
+            </span>
+            <select id="retention-select">
+              <option value="">Forever</option>
+              <option value="7">7 days</option>
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+              <option value="365">1 year</option>
+            </select>
+          </label>
+
+          <div class="settings-divider"></div>
+
+          <div class="settings-danger">
+            <div class="settings-copy">
+              <strong>Clear saved history</strong>
+              <small>Remove every recorded command from this Mac.</small>
+            </div>
+            <button class="danger-button" id="clear-history" type="button">Clear all</button>
+          </div>
+
+          <div class="clear-confirmation" id="clear-confirmation" hidden>
+            <p>Delete every saved command? This cannot be undone.</p>
+            <div class="clear-confirmation-actions">
+              <button class="secondary-button" id="cancel-clear" type="button">Cancel</button>
+              <button class="danger-button" id="confirm-clear" type="button">Delete history</button>
+            </div>
+          </div>
+
+          <p class="settings-status" id="settings-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <footer class="settings-footer">
+          <button class="secondary-button" id="cancel-settings" type="button">Cancel</button>
+          <button class="primary-button" id="save-settings" type="button">Save changes</button>
+        </footer>
+      </section>
     </div>
-    <div id="results"></div>
   </div>
   <script type="module" src="main.js"></script>
 </body>

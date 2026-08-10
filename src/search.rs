@@ -7,12 +7,18 @@ pub struct Stats {
     pub sessions: usize,
 }
 
-pub fn search(conn: &Connection, query: &str, cwd: Option<&str>, exit_code: Option<i32>, limit: usize) -> Result<Vec<String>> {
+pub fn search(
+    conn: &Connection,
+    query: &str,
+    cwd: Option<&str>,
+    exit_code: Option<i32>,
+    limit: usize,
+) -> Result<Vec<String>> {
     let mut sql = String::from(
         "SELECT h.command, h.cwd, h.exit_code, h.timestamp
          FROM history_fts f
          JOIN history h ON f.rowid = h.id
-         WHERE history_fts MATCH ?1"
+         WHERE history_fts MATCH ?1",
     );
 
     let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = vec![Box::new(query.to_string())];
@@ -44,7 +50,11 @@ pub fn search(conn: &Connection, query: &str, cwd: Option<&str>, exit_code: Opti
         let timestamp: i64 = row.get(3)?;
 
         let dt = chrono::DateTime::from_timestamp(timestamp, 0)
-            .map(|d| d.with_timezone(&chrono::Local).format("%Y-%m-%d %H:%M").to_string())
+            .map(|d| {
+                d.with_timezone(&chrono::Local)
+                    .format("%Y-%m-%d %H:%M")
+                    .to_string()
+            })
             .unwrap_or_default();
 
         let exit_str = match exit_code {
@@ -53,7 +63,13 @@ pub fn search(conn: &Connection, query: &str, cwd: Option<&str>, exit_code: Opti
             None => "?".to_string(),
         };
 
-        Ok(format!("{:>16}  {:>3}  {:40}  {}", dt, exit_str, truncate(&command, 40), cwd))
+        Ok(format!(
+            "{:>16}  {:>3}  {:40}  {}",
+            dt,
+            exit_str,
+            truncate(&command, 40),
+            cwd
+        ))
     })?;
 
     let mut results = Vec::new();
@@ -66,7 +82,7 @@ pub fn search(conn: &Connection, query: &str, cwd: Option<&str>, exit_code: Opti
 
 pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<String>> {
     let mut stmt = conn.prepare(
-        "SELECT command, cwd, exit_code, timestamp FROM history ORDER BY timestamp DESC LIMIT ?1"
+        "SELECT command, cwd, exit_code, timestamp FROM history ORDER BY timestamp DESC LIMIT ?1",
     )?;
 
     let rows = stmt.query_map([limit], |row| {
@@ -76,7 +92,11 @@ pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<String>> {
         let timestamp: i64 = row.get(3)?;
 
         let dt = chrono::DateTime::from_timestamp(timestamp, 0)
-            .map(|d| d.with_timezone(&chrono::Local).format("%Y-%m-%d %H:%M").to_string())
+            .map(|d| {
+                d.with_timezone(&chrono::Local)
+                    .format("%Y-%m-%d %H:%M")
+                    .to_string()
+            })
             .unwrap_or_default();
 
         let exit_str = match exit_code {
@@ -85,7 +105,13 @@ pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<String>> {
             None => "?".to_string(),
         };
 
-        Ok(format!("{:>16}  {:>3}  {:40}  {}", dt, exit_str, truncate(&command, 40), cwd))
+        Ok(format!(
+            "{:>16}  {:>3}  {:40}  {}",
+            dt,
+            exit_str,
+            truncate(&command, 40),
+            cwd
+        ))
     })?;
 
     let mut results = Vec::new();
@@ -98,7 +124,7 @@ pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<String>> {
 
 pub fn top(conn: &Connection, n: usize) -> Result<Vec<(String, usize)>> {
     let mut stmt = conn.prepare(
-        "SELECT command, COUNT(*) as cnt FROM history GROUP BY command ORDER BY cnt DESC LIMIT ?1"
+        "SELECT command, COUNT(*) as cnt FROM history GROUP BY command ORDER BY cnt DESC LIMIT ?1",
     )?;
 
     let rows = stmt.query_map([n], |row| {
@@ -117,16 +143,42 @@ pub fn top(conn: &Connection, n: usize) -> Result<Vec<(String, usize)>> {
 
 pub fn stats(conn: &Connection) -> Result<Stats> {
     let total: usize = conn.query_row("SELECT COUNT(*) FROM history", [], |r| r.get(0))?;
-    let unique: usize = conn.query_row("SELECT COUNT(DISTINCT command) FROM history", [], |r| r.get(0))?;
-    let sessions: usize = conn.query_row("SELECT COUNT(DISTINCT session_id) FROM history WHERE session_id != ''", [], |r| r.get(0))?;
+    let unique: usize = conn.query_row("SELECT COUNT(DISTINCT command) FROM history", [], |r| {
+        r.get(0)
+    })?;
+    let sessions: usize = conn.query_row(
+        "SELECT COUNT(DISTINCT session_id) FROM history WHERE session_id != ''",
+        [],
+        |r| r.get(0),
+    )?;
 
-    Ok(Stats { total, unique, sessions })
+    Ok(Stats {
+        total,
+        unique,
+        sessions,
+    })
 }
 
 fn truncate(s: &str, max_len: usize) -> String {
-    if s.len() <= max_len {
+    if s.chars().count() <= max_len {
         s.to_string()
     } else {
-        format!("{}...", &s[..max_len - 3])
+        let visible_len = max_len.saturating_sub(3);
+        format!("{}...", s.chars().take(visible_len).collect::<String>())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::truncate;
+
+    #[test]
+    fn truncate_preserves_utf8_boundaries() {
+        assert_eq!(truncate("你好世界abc", 6), "你好世...");
+    }
+
+    #[test]
+    fn truncate_keeps_short_commands_intact() {
+        assert_eq!(truncate("git status", 40), "git status");
     }
 }

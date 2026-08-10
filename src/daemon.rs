@@ -1,7 +1,8 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 use std::io::{BufRead, BufReader};
-use std::os::unix::net::{UnixDatagram, UnixListener};
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
 use crate::db;
@@ -67,7 +68,12 @@ pub fn run() -> Result<()> {
 }
 
 #[allow(dead_code)]
-pub fn send_to_daemon(command: &str, cwd: &str, exit: Option<i32>, duration: Option<u64>) -> Result<()> {
+pub fn send_to_daemon(
+    command: &str,
+    cwd: &str,
+    exit: Option<i32>,
+    duration: Option<u64>,
+) -> Result<()> {
     let path = socket_path();
     if !path.exists() {
         anyhow::bail!("daemon not running");
@@ -81,8 +87,9 @@ pub fn send_to_daemon(command: &str, cwd: &str, exit: Option<i32>, duration: Opt
     };
 
     let data = serde_json::to_string(&msg)?;
-    let sock = UnixDatagram::unbound()?;
-    sock.send_to(data.as_bytes(), &path)?;
+    let mut stream = UnixStream::connect(path)?;
+    stream.write_all(data.as_bytes())?;
+    stream.write_all(b"\n")?;
 
     Ok(())
 }

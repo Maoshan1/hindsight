@@ -1,6 +1,7 @@
 mod db;
 mod daemon;
 mod search;
+mod settings;
 mod tui;
 mod record;
 

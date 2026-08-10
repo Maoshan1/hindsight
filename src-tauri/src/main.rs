@@ -1,14 +1,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod db;
+mod settings;
 
 use tauri::{
-    Emitter, Manager, RunEvent,
     menu::{MenuBuilder, MenuItemBuilder},
+    Emitter, Manager, RunEvent,
 };
 
 #[tauri::command]
-fn search_commands(query: String, limit: Option<usize>) -> Result<Vec<String>, String> {
+fn search_commands(query: String, limit: Option<usize>) -> Result<Vec<db::HistoryItem>, String> {
     let conn = db::open().map_err(|e| e.to_string())?;
     let limit = limit.unwrap_or(50);
     if query.is_empty() {
@@ -19,15 +20,40 @@ fn search_commands(query: String, limit: Option<usize>) -> Result<Vec<String>, S
 }
 
 #[tauri::command]
-fn get_recent(limit: Option<usize>) -> Result<Vec<String>, String> {
+fn get_recent(limit: Option<usize>) -> Result<Vec<db::HistoryItem>, String> {
     let conn = db::open().map_err(|e| e.to_string())?;
     db::recent(&conn, limit.unwrap_or(50)).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_settings() -> Result<settings::Settings, String> {
+    settings::load().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn update_settings(settings: settings::Settings) -> Result<settings::Settings, String> {
+    let saved = settings::save(&settings).map_err(|e| e.to_string())?;
+    let conn = db::open().map_err(|e| e.to_string())?;
+    db::prune(&conn, saved.retention_days).map_err(|e| e.to_string())?;
+    Ok(saved)
+}
+
+#[tauri::command]
+fn clear_history() -> Result<usize, String> {
+    let conn = db::open().map_err(|e| e.to_string())?;
+    db::clear_history(&conn).map_err(|e| e.to_string())
 }
 
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![search_commands, get_recent])
+        .invoke_handler(tauri::generate_handler![
+            search_commands,
+            get_recent,
+            get_settings,
+            update_settings,
+            clear_history
+        ])
         .setup(|app| {
             // Build tray menu
             let quit = MenuItemBuilder::with_id("quit", "Quit Hindsight").build(app)?;
@@ -44,8 +70,10 @@ fn main() {
                     if let tauri::tray::TrayIconEvent::Click { button, .. } = event {
                         if button == tauri::tray::MouseButton::Left {
                             #[cfg(target_os = "macos")]
-                            app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
+                            let _ =
+                                app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
                             if let Some(window) = app_handle.get_webview_window("search") {
+                                let _ = window.unminimize();
                                 let _ = window.show();
                                 let _ = window.set_focus();
                                 // Notify frontend to refresh
@@ -63,12 +91,14 @@ fn main() {
                 });
             }
 
-            // Hide window on startup (tray-only, no dock icon)
+            // Show the search window on launch. Closing it still returns to the tray.
             #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
             if let Some(window) = app.get_webview_window("search") {
-                let _ = window.hide();
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
 
                 // Close button → hide window + hide dock icon
                 let app_handle = app.handle().clone();
@@ -76,7 +106,8 @@ fn main() {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                         api.prevent_close();
                         #[cfg(target_os = "macos")]
-                        app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                        let _ =
+                            app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
                         if let Some(w) = app_handle.get_webview_window("search") {
                             let _ = w.hide();
                         }
@@ -88,9 +119,20 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, event| {
-            if let RunEvent::ExitRequested { api, .. } = event {
+        .run(|app_handle, event| match event {
+            RunEvent::ExitRequested { api, .. } => {
                 api.prevent_exit();
             }
+            #[cfg(target_os = "macos")]
+            RunEvent::Reopen { .. } => {
+                let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
+                if let Some(window) = app_handle.get_webview_window("search") {
+                    let _ = window.unminimize();
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                    let _ = app_handle.emit("window-shown", ());
+                }
+            }
+            _ => {}
         });
 }
