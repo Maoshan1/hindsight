@@ -13,6 +13,7 @@
   <a href="#功能特性">功能</a> •
   <a href="#安装">安装</a> •
   <a href="#使用方法">使用</a> •
+  <a href="#设置与数据">设置</a> •
   <a href="#对比">对比</a> •
   <a href="#贡献">贡献</a>
 </p>
@@ -34,7 +35,9 @@
 - **失败命令筛选** — 快速找到出错的命令
 - **隐私优先** — 100% 本地存储，无需云端，无需账号
 - **非侵入式** — 与现有 history 共存，不替换任何东西
-- **macOS GUI** — 美观的菜单栏应用，支持模糊搜索
+- **macOS GUI** — 适合键盘操作的菜单栏搜索应用
+- **设置功能** — 暂停记录，并选择历史记录保留时间
+- **历史管理** — 通过明确确认，一次性清空 Hindsight 保存的记录
 - **CLI 工具** — 适合终端用户的快速命令行版本
 
 ## 安装
@@ -53,6 +56,14 @@ cargo install tauri-cli
 npm run tauri build
 ```
 
+在 Apple Silicon Mac 上构建会生成两个安装包：
+
+- `src-tauri/target/release/bundle/macos/Hindsight.app`
+- `src-tauri/target/release/bundle/dmg/Hindsight_0.1.1_aarch64.dmg`
+
+GUI 和 CLI 使用同一个本地数据库。如果要通过 shell hook 自动记录命令，
+还需要安装 CLI；在本地源码目录中可以执行 `cargo install --path .`。
+
 ### CLI（Homebrew）
 
 ```bash
@@ -68,15 +79,20 @@ cargo install hindsight
 
 ## 配置
 
-在 `~/.zshrc`（或 `~/.bashrc`）中添加：
+在 `~/.zshrc`（或 `~/.bashrc`）中添加对应的 hook：
 
 ```bash
 # Homebrew 安装
 source $(brew --prefix)/share/hindsight/hindsight.zsh
 
-# Cargo 安装
+# 从源码安装
+mkdir -p ~/.hindsight
+cp hindsight.zsh ~/.hindsight/hindsight.zsh
 source ~/.hindsight/hindsight.zsh
 ```
+
+Bash 用户请用同样方式配置 `hindsight.bash`。hook 会调用已安装的
+`hindsight` CLI，macOS GUI 读取的就是 CLI 写入的记录。
 
 之后你执行的每条命令都会自动记录。
 
@@ -102,13 +118,28 @@ hindsight ffmpeg
 hindsight "docker compose"
 
 # 只搜索失败的命令
-hindsight --exit 1
+hindsight search --exit 1
 
 # 最常用的命令
 hindsight top
 
 # 最近的命令
 hindsight
+```
+
+## 设置与数据
+
+点击应用右上角的齿轮图标，可以管理：
+
+- **Record commands** — 暂停或恢复新记录，不会修改 shell hook 文件。
+- **Keep history** — 永久保存，或只保留 7、30、90 天及 1 年。保存设置或记录新命令时，会清理过期记录。
+- **Clear all** — 永久删除 Hindsight 保存的全部记录，不会修改 shell 自己的历史文件（例如 `~/.zsh_history`）。
+
+Hindsight 的数据全部保存在本机：
+
+```text
+~/.hindsight/history.db       # 命令历史和搜索索引
+~/.hindsight/settings.json    # 记录和保留期限设置
 ```
 
 ## 工作原理
@@ -135,6 +166,9 @@ hindsight
         │ (Tauri)  │    │ (Rust)   │
         └──────────┘    └──────────┘
 ```
+
+GUI 的设置面板可以控制记录开关和保留期限，不会改写 shell hook。清空历史时，
+应用会删除 SQLite 中的记录并重建搜索索引。
 
 ## 对比
 
@@ -174,6 +208,18 @@ cd hindsight
 npm install
 npm run tauri dev
 ```
+
+提交 Pull Request 前建议运行以下检查：
+
+```bash
+cargo test
+cargo check
+cargo test --manifest-path src-tauri/Cargo.toml
+npx vite build
+```
+
+`npm run tauri build` 会构建 macOS `.app` 和 `.dmg`。生成 DMG 需要 macOS 的
+`hdiutil` 等系统工具。
 
 ## 许可证
 

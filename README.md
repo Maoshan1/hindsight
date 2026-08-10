@@ -13,6 +13,7 @@
   <a href="#-features">Features</a> •
   <a href="#-install">Install</a> •
   <a href="#-usage">Usage</a> •
+  <a href="#-settings-and-data">Settings</a> •
   <a href="#-comparison">Comparison</a> •
   <a href="#-contributing">Contributing</a> •
   <a href="#-license">License</a>
@@ -46,7 +47,9 @@ You wrote a complex `ffmpeg` command three weeks ago. You need it again. But you
 - **Failed command filter** — Quickly find what went wrong
 - **Privacy-first** — 100% local, no cloud, no account needed
 - **Non-invasive** — Works alongside your existing history, doesn't replace it
-- **GUI App** — Beautiful macOS menu bar app with fuzzy search
+- **GUI App** — macOS menu bar app with keyboard-friendly search
+- **Settings** — Pause recording and choose how long records are kept
+- **History controls** — Clear all Hindsight records with an explicit confirmation
 - **CLI Tool** — Fast terminal interface for power users
 
 ## Install
@@ -65,6 +68,15 @@ cargo install tauri-cli
 npm run tauri build
 ```
 
+The build creates both bundles on Apple Silicon:
+
+- `src-tauri/target/release/bundle/macos/Hindsight.app`
+- `src-tauri/target/release/bundle/dmg/Hindsight_0.1.1_aarch64.dmg`
+
+The GUI and CLI share the same local database. To record commands through the
+shell hooks, install the CLI as well (for a local checkout, use
+`cargo install --path .`).
+
 ### CLI (Homebrew)
 
 ```bash
@@ -80,15 +92,20 @@ cargo install hindsight
 
 ## Setup
 
-Add to your `~/.zshrc` (or `~/.bashrc`):
+Add the matching hook to your `~/.zshrc` (or `~/.bashrc`):
 
 ```bash
 # For Homebrew install
 source $(brew --prefix)/share/hindsight/hindsight.zsh
 
-# For cargo install
+# For a source checkout
+mkdir -p ~/.hindsight
+cp hindsight.zsh ~/.hindsight/hindsight.zsh
 source ~/.hindsight/hindsight.zsh
 ```
+
+For Bash, use `hindsight.bash` in the same way. The hook calls the installed
+`hindsight` CLI; the macOS GUI reads the records written by that CLI.
 
 Every command you run is now automatically recorded.
 
@@ -114,13 +131,30 @@ hindsight ffmpeg
 hindsight "docker compose"
 
 # Search failed commands
-hindsight --exit 1
+hindsight search --exit 1
 
 # Most used commands
 hindsight top
 
 # All recent commands
 hindsight
+```
+
+## Settings and data
+
+Open the gear icon in the app to manage:
+
+- **Record commands** — Pause or resume new records without removing the shell hooks.
+- **Keep history** — Keep records forever, or retain 7, 30, 90 days, or 1 year.
+  Older records are pruned when settings are saved or a new command is recorded.
+- **Clear all** — Permanently remove every record stored by Hindsight. This does
+  not modify your shell's own history file (such as `~/.zsh_history`).
+
+Hindsight stores everything locally:
+
+```text
+~/.hindsight/history.db       # command history and search index
+~/.hindsight/settings.json    # recording and retention preferences
 ```
 
 ## How It Works
@@ -147,6 +181,10 @@ hindsight
         │ (Tauri)  │    │ (Rust)   │
         └──────────┘    └──────────┘
 ```
+
+The GUI's Settings panel controls recording and retention without changing the
+shell hook files. Clearing history removes rows from the SQLite database and
+rebuilds its search index.
 
 ## Comparison
 
@@ -186,6 +224,18 @@ cd hindsight
 npm install
 npm run tauri dev
 ```
+
+Run the checks before opening a pull request:
+
+```bash
+cargo test
+cargo check
+cargo test --manifest-path src-tauri/Cargo.toml
+npx vite build
+```
+
+`npm run tauri build` builds the macOS `.app` and `.dmg` bundles. DMG creation
+requires macOS tooling such as `hdiutil`.
 
 ## License
 
