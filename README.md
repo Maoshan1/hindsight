@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.1-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.1.2-blue" alt="Version">
   <img src="https://img.shields.io/badge/platform-macOS-lightgrey" alt="Platform">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/Rust-2021-orange" alt="Rust">
@@ -71,7 +71,7 @@ npm run tauri build
 The build creates both bundles on Apple Silicon:
 
 - `src-tauri/target/release/bundle/macos/Hindsight.app`
-- `src-tauri/target/release/bundle/dmg/Hindsight_0.1.1_aarch64.dmg`
+- `src-tauri/target/release/bundle/dmg/Hindsight_0.1.2_aarch64.dmg`
 
 The GUI and CLI share the same local database. To record commands through the
 shell hooks, install the CLI as well (for a local checkout, use

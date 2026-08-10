@@ -59,7 +59,7 @@ npm run tauri build
 在 Apple Silicon Mac 上构建会生成两个安装包：
 
 - `src-tauri/target/release/bundle/macos/Hindsight.app`
-- `src-tauri/target/release/bundle/dmg/Hindsight_0.1.1_aarch64.dmg`
+- `src-tauri/target/release/bundle/dmg/Hindsight_0.1.2_aarch64.dmg`
 
 GUI 和 CLI 使用同一个本地数据库。如果要通过 shell hook 自动记录命令，
 还需要安装 CLI；在本地源码目录中可以执行 `cargo install --path .`。

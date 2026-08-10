@@ -1,6 +1,6 @@
 [package]
 name = "hindsight-app"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "20/20 vision for your shell history"
 
