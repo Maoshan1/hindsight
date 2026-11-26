@@ -1,6 +1,6 @@
 {
   "name": "hindsight-app",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "20/20 vision for your shell history",
   "scripts": {
     "tauri": "tauri",

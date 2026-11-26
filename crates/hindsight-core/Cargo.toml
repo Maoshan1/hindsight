@@ -1,6 +1,6 @@
 [package]
 name = "hindsight-core"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 description = "Shared storage, search, and settings core for Hindsight"
 license = "MIT"
