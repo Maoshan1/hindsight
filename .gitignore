@@ -6,3 +6,4 @@ src-tauri/target/
 *.db-wal
 *.db-shm
 .DS_Store
+xhs-promotion.md
