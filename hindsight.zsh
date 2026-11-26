@@ -19,6 +19,13 @@ _hindsight_now_ms() {
 }
 
 _hindsight_preexec() {
+    case "$1" in
+        ""|[[:space:]]*)
+            _HINDSIGHT_CMD=""
+            _HINDSIGHT_START_MS=""
+            return 0
+            ;;
+    esac
     _HINDSIGHT_CMD="$1"
     _HINDSIGHT_START_MS=$(_hindsight_now_ms)
 }
@@ -29,7 +36,7 @@ _hindsight_precmd() {
     local _now_ms=$(_hindsight_now_ms)
     local _dur=$(( _now_ms - ${_HINDSIGHT_START_MS:-$_now_ms} ))
 
-    if [[ -n "$_HINDSIGHT_CMD" ]]; then
+    if [[ -n "$_HINDSIGHT_CMD" && "$_HINDSIGHT_CMD" != [[:space:]]* ]]; then
         $HINDSIGHT_BIN add --command "$_HINDSIGHT_CMD" --cwd "$PWD" --exit $_exit --duration $_dur &>/dev/null &
         disown 2>/dev/null
     fi

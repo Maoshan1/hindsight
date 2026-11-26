@@ -1,11 +1,10 @@
-mod db;
 mod daemon;
 mod search;
-mod settings;
 mod tui;
 mod record;
 
 use clap::{Parser, Subcommand};
+use hindsight_core::db;
 
 #[derive(Parser)]
 #[command(name = "hindsight", version, about = "20/20 vision for your shell history")]
@@ -41,7 +40,7 @@ enum Commands {
         duration: Option<u64>,
     },
 
-    /// Search history (interactive TUI if no query given)
+    /// Search history (interactive TUI if no query or filters given)
     Search {
         /// Search query (omit for interactive mode)
         query: Option<String>,
@@ -53,6 +52,10 @@ enum Commands {
         /// Filter by exit code
         #[arg(short, long)]
         exit: Option<i32>,
+
+        /// Only show failed commands (non-zero exit code)
+        #[arg(long)]
+        failed: bool,
 
         /// Max results
         #[arg(short, long, default_value = "20")]
@@ -86,16 +89,22 @@ fn main() -> anyhow::Result<()> {
             let conn = db::open()?;
             db::insert(&conn, &command, &cwd, exit, duration)?;
         }
-        Some(Commands::Search { query, cwd, exit, limit }) => {
+        Some(Commands::Search {
+            query,
+            cwd,
+            exit,
+            failed,
+            limit,
+        }) => {
             let q = query.unwrap_or_default();
-            if q.is_empty() {
-                // No query — open interactive TUI
+            if q.is_empty() && cwd.is_none() && exit.is_none() && !failed {
+                // No query or filters — open interactive TUI
                 tui::run("")?;
             } else {
                 let conn = db::open()?;
-                let results = search::search(&conn, &q, cwd.as_deref(), exit, limit)?;
+                let results = search::search(&conn, &q, cwd.as_deref(), exit, failed, limit)?;
                 for r in results {
-                    println!("{}", r);
+                    println!("{}", search::format_item(&r));
                 }
             }
         }
@@ -118,20 +127,14 @@ fn main() -> anyhow::Result<()> {
         }
         None => {
             let query = cli.query.unwrap_or_default();
-            if query.is_empty() {
-                // No args at all — show recent
-                let conn = db::open()?;
-                let results = search::recent(&conn, 20)?;
-                for r in results {
-                    println!("{}", r);
-                }
+            let conn = db::open()?;
+            let results = if query.is_empty() {
+                search::recent(&conn, 20)?
             } else {
-                // Has query — search
-                let conn = db::open()?;
-                let results = search::search(&conn, &query, None, None, 20)?;
-                for r in results {
-                    println!("{}", r);
-                }
+                search::search(&conn, &query, None, None, false, 20)?
+            };
+            for r in results {
+                println!("{}", search::format_item(&r));
             }
         }
     }
