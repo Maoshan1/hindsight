@@ -5,13 +5,10 @@ use std::io::{BufRead, BufReader};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
-use crate::db;
+use hindsight_core::{db, settings};
 
-fn socket_path() -> PathBuf {
-    let home = dirs::home_dir().expect("cannot find home dir");
-    let dir = home.join(".hindsight");
-    std::fs::create_dir_all(&dir).ok();
-    dir.join("hindsight.sock")
+fn socket_path() -> Result<PathBuf> {
+    Ok(settings::data_dir()?.join("hindsight.sock"))
 }
 
 #[derive(Deserialize, Serialize)]
@@ -23,7 +20,7 @@ struct HookMessage {
 }
 
 pub fn run() -> Result<()> {
-    let path = socket_path();
+    let path = socket_path()?;
 
     // Remove stale socket
     if path.exists() {
@@ -74,7 +71,7 @@ pub fn send_to_daemon(
     exit: Option<i32>,
     duration: Option<u64>,
 ) -> Result<()> {
-    let path = socket_path();
+    let path = socket_path()?;
     if !path.exists() {
         anyhow::bail!("daemon not running");
     }
