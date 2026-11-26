@@ -8,8 +8,8 @@
     "build": "tauri build"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.11.0",
-    "@tauri-apps/cli": "^2.11.2",
+    "@tauri-apps/api": "^2.12.5",
+    "@tauri-apps/cli": "^2.12.6",
     "esbuild": "^0.28.0",
     "vite": "^8.0.14"
   }
