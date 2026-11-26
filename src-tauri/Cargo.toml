@@ -1,3 +1,5 @@
+[workspace]
+
 [package]
 name = "hindsight-app"
 version = "0.1.2"
@@ -8,11 +10,10 @@ description = "20/20 vision for your shell history"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+hindsight-core = { path = "../crates/hindsight-core" }
 tauri = { version = "2", features = ["tray-icon", "macos-private-api"] }
+tauri-plugin-global-shortcut = "2"
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rusqlite = { version = "0.31", features = ["bundled", "modern_sqlite"] }
-chrono = "0.4"
-dirs = "5"
 anyhow = "1"

@@ -6,6 +6,7 @@ const resultsDiv = document.getElementById('results');
 const resultSummary = document.getElementById('result-summary');
 const refreshButton = document.getElementById('refresh');
 const clearButton = document.getElementById('clear-query');
+const searchKbd = document.getElementById('search-kbd');
 const toast = document.getElementById('copy-toast');
 const filterButtons = [...document.querySelectorAll('[data-filter]')];
 const openSettingsButton = document.getElementById('open-settings');
@@ -41,6 +42,20 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function highlightMatch(text, query) {
+  const safe = escapeHtml(text);
+  const terms = String(query ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => escapeHtml(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+  if (terms.length === 0) return safe;
+
+  const pattern = new RegExp(`(${terms.join('|')})`, 'gi');
+  return safe.replace(pattern, '<mark>$1</mark>');
 }
 
 function displayText(value) {
@@ -106,13 +121,7 @@ function normalizeItem(item) {
 }
 
 function visibleItems() {
-  return state.items
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => state.filter === 'all' || (
-      item.exit_code !== null
-      && item.exit_code !== undefined
-      && item.exit_code !== 0
-    ));
+  return state.items.map((item, index) => ({ item, index }));
 }
 
 function renderToolbar() {
@@ -149,7 +158,12 @@ function renderEmpty() {
 
   resultsDiv.innerHTML = `
     <div class="empty-state">
-      <div class="empty-icon" aria-hidden="true">⌕</div>
+      <div class="empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+          <circle cx="8.75" cy="8.75" r="5.5"/>
+          <path d="M13 13l4 4"/>
+        </svg>
+      </div>
       <h2>${heading}</h2>
       <p>${detail}</p>
     </div>
@@ -205,16 +219,21 @@ function renderResults() {
       >
         <span class="status-dot ${status.className}" title="${escapeHtml(status.label)}"></span>
         <span class="history-copy">
-          <span class="command" title="${escapeHtml(item.command)}">${escapeHtml(command)}</span>
+          <span class="command" title="${escapeHtml(item.command)}">${highlightMatch(command, state.query)}</span>
           <span class="meta">
             <span>${escapeHtml(formatTimestamp(item.timestamp))}</span>
             <span class="meta-divider" aria-hidden="true">·</span>
-            <span class="cwd" title="${escapeHtml(item.cwd)}">${escapeHtml(cwd)}</span>
-            ${duration ? `<span class="meta-divider" aria-hidden="true">·</span><span>${escapeHtml(duration)}</span>` : ''}
+            <span class="cwd" title="${escapeHtml(item.cwd)}">${highlightMatch(cwd, state.query)}</span>
+            ${duration ? `<span class="meta-divider" aria-hidden="true">·</span><span class="duration-badge">${escapeHtml(duration)}</span>` : ''}
             ${exitCode}
           </span>
         </span>
-        <span class="copy-mark" aria-hidden="true">⧉</span>
+        <span class="copy-mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5.5" y="5.5" width="7.5" height="7.5" rx="1.5"/>
+            <path d="M10.5 3.5V3a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 3v6A1.5 1.5 0 0 0 3 10.5h.5"/>
+          </svg>
+        </span>
       </button>
     `;
   }).join('');
@@ -226,7 +245,9 @@ function renderResults() {
 function render() {
   renderToolbar();
   renderResults();
-  clearButton.classList.toggle('visible', state.query.length > 0);
+  const hasQuery = state.query.length > 0;
+  clearButton.classList.toggle('visible', hasQuery);
+  searchKbd.classList.toggle('hidden', hasQuery);
 }
 
 function formatError(error) {
@@ -338,7 +359,11 @@ async function search(query = state.query) {
   render();
 
   try {
-    const results = await invoke('search_commands', { query: state.query, limit: 100 });
+    const results = await invoke('search_commands', {
+      query: state.query,
+      failedOnly: state.filter === 'failed',
+      limit: 100,
+    });
     if (sequence !== searchSequence) return;
     state.items = Array.isArray(results) ? results.map(normalizeItem) : [];
     state.selectedIndex = 0;
@@ -459,9 +484,10 @@ resultsDiv.addEventListener('click', (event) => {
 
 filterButtons.forEach((button) => {
   button.addEventListener('click', () => {
+    if (state.filter === button.dataset.filter) return;
     state.filter = button.dataset.filter;
     state.selectedIndex = 0;
-    render();
+    search(state.query);
   });
 });
 

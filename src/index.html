@@ -9,34 +9,74 @@
 <body>
   <div id="app">
     <header class="app-header">
-      <div class="brand-mark" aria-hidden="true">H</div>
-      <div class="brand-copy">
-        <span class="eyebrow">LOCAL HISTORY</span>
-        <h1>Hindsight</h1>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3.5 12a8.5 8.5 0 1 0 2.5-6.01L3.5 8.5"/>
+            <path d="M3.5 3.5v5h5"/>
+            <path d="M9.5 9.5l3 2.5-3 2.5"/>
+            <path d="M13.5 14.5h2.5"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <span class="eyebrow">LOCAL SHELL HISTORY</span>
+          <h1>Hindsight</h1>
+        </div>
       </div>
+
       <div class="header-actions">
-        <button class="icon-button" id="refresh" type="button" title="Refresh history" aria-label="Refresh history">↻</button>
-        <button class="icon-button" id="open-settings" type="button" title="Settings" aria-label="Settings">⚙</button>
+        <span class="shortcut-badge" title="Global toggle shortcut">⌘⌥H</span>
+        <button class="icon-button" id="refresh" type="button" title="Refresh history" aria-label="Refresh history">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16.5 10a6.5 6.5 0 1 1-1.9-4.6l1.9 1.9"/>
+            <path d="M16.5 3.8v3.5H13"/>
+          </svg>
+        </button>
+        <button class="icon-button" id="open-settings" type="button" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="10" r="2.6"/>
+            <path d="M16.2 12.2a1.4 1.4 0 0 0 .28 1.54l.05.05a1.7 1.7 0 1 1-2.4 2.4l-.05-.05a1.4 1.4 0 0 0-1.54-.28 1.4 1.4 0 0 0-.85 1.28v.14a1.7 1.7 0 1 1-3.4 0v-.07a1.4 1.4 0 0 0-.91-1.28 1.4 1.4 0 0 0-1.54.28l-.05.05a1.7 1.7 0 1 1-2.4-2.4l.05-.05a1.4 1.4 0 0 0 .28-1.54 1.4 1.4 0 0 0-1.28-.85H2.5a1.7 1.7 0 1 1 0-3.4h.07a1.4 1.4 0 0 0 1.28-.91 1.4 1.4 0 0 0-.28-1.54l-.05-.05a1.7 1.7 0 1 1 2.4-2.4l.05.05a1.4 1.4 0 0 0 1.54.28h.07a1.4 1.4 0 0 0 .85-1.28V2.5a1.7 1.7 0 1 1 3.4 0v.07a1.4 1.4 0 0 0 .85 1.28 1.4 1.4 0 0 0 1.54-.28l.05-.05a1.7 1.7 0 1 1 2.4 2.4l-.05.05a1.4 1.4 0 0 0-.28 1.54v.07a1.4 1.4 0 0 0 1.28.85h.14a1.7 1.7 0 1 1 0 3.4h-.07a1.4 1.4 0 0 0-1.28.85z"/>
+          </svg>
+        </button>
       </div>
     </header>
 
     <main class="content">
       <div class="search-field">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input type="search" id="query" placeholder="Search commands or folders" autofocus autocomplete="off" spellcheck="false" aria-label="Search commands or folders">
-        <button class="clear-button" id="clear-query" type="button" title="Clear search" aria-label="Clear search">×</button>
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8.75" cy="8.75" r="5.5"/>
+            <path d="M13 13l4 4"/>
+          </svg>
+        </span>
+        <input type="search" id="query" placeholder="Search commands, flags, or folders..." autofocus autocomplete="off" spellcheck="false" aria-label="Search commands or folders">
+        <kbd class="search-kbd" id="search-kbd" aria-hidden="true">⌘K</kbd>
+        <button class="clear-button" id="clear-query" type="button" title="Clear search" aria-label="Clear search">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>
+          </svg>
+        </button>
       </div>
 
       <div class="toolbar">
         <div class="filter-group" role="group" aria-label="History filter">
           <button class="filter-button active" type="button" data-filter="all">All</button>
-          <button class="filter-button" type="button" data-filter="failed">Failed</button>
+          <button class="filter-button" type="button" data-filter="failed">
+            <span class="filter-dot" aria-hidden="true"></span>Failed
+          </button>
         </div>
         <span class="result-summary" id="result-summary" aria-live="polite"></span>
       </div>
 
       <section id="results" role="listbox" aria-label="Command history" aria-live="polite"></section>
     </main>
+
+    <footer class="app-footer" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> Select</span>
+      <span><kbd>↵</kbd> Copy command</span>
+      <span><kbd>Esc</kbd> Clear</span>
+      <span><kbd>⌘⌥H</kbd> Toggle window</span>
+    </footer>
 
     <div class="copy-toast" id="copy-toast" role="status" aria-live="polite"></div>
 
@@ -47,7 +87,11 @@
             <span class="eyebrow">PREFERENCES</span>
             <h2 id="settings-title">Settings</h2>
           </div>
-          <button class="icon-button" id="close-settings" type="button" title="Close settings" aria-label="Close settings">×</button>
+          <button class="icon-button" id="close-settings" type="button" title="Close settings" aria-label="Close settings">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/>
+            </svg>
+          </button>
         </header>
 
         <div class="settings-body">
