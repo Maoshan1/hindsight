@@ -1,8 +1,8 @@
 class Hindsight < Formula
   desc "20/20 vision for your shell history"
   homepage "https://github.com/Maoshan1/hindsight"
-  url "https://github.com/Maoshan1/hindsight/archive/refs/tags/v0.1.2.tar.gz"
-  sha256 "6bc241f85db4551a064892de8e07d5b28cee2b1452705788b54b0ff29c3f1c45"
+  url "https://github.com/Maoshan1/hindsight/archive/refs/tags/v0.2.0.tar.gz"
+  sha256 "d8d969ff813575dec005dc49a8910f896bffd4703995c2f9f26ec93bfb2e97cc"
   license "MIT"
 
   depends_on "rust" => :build
